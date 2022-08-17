@@ -1,0 +1,1 @@
+web: gunicorn iOBPdb_app:server

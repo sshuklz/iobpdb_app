@@ -32,7 +32,7 @@ dark_theme = dmc.MantineProvider(withGlobalStyles=True, theme={"colorScheme": "d
 cob_df = pd.read_csv('Compound_OBP_binding.csv', dtype = str) 
 cob_df['id'] = cob_df['CAS-number']
 ci_df = pd.read_csv('Compound_info.csv', dtype = str) 
-oi_df = pd.read_csv('OBP_info_new.csv', dtype = str) 
+oi_df = pd.read_csv('OBP_info.csv', dtype = str) 
 
 compact_comp_df = ci_df[ci_df.columns[[0,1,3,2]]]
 compact_comp_df['id'] = compact_comp_df['CAS-number']
@@ -125,7 +125,7 @@ Navbar = dmc.Navbar(
                 dmc.Anchor('Search', href='/Search'),
                 dmc.Anchor('Browse Compounds', href='/BrowseCompounds'),
                 dmc.Anchor('Browse OBPs', href='/BrowseOBPs'),
-                # dmc.Anchor('BindingScapes', href='/Bindingscape'),
+                dmc.Anchor('Data Entry Form', href='/DataEntry'),
                 dmc.Anchor('Download datafiles', href='/Download')
             
             ]
@@ -167,14 +167,14 @@ page_0_layout = html.Div( children = [
         
         children=[
             
-            html.Img(src="/assets/BAS_lr.png", width = 250,height = 250),
+            html.Img(src="/assets/BAS.png", width = 250,height = 250),
             
             dmc.Text(
                 "iOBPdb Home",
                 style={"fontSize": 60},
             ),
             
-            html.Img(src="/assets/cartoon_lr.png", width = 250,height = 250)
+            html.Img(src="/assets/cartoon.png", width = 250,height = 250)
             
         ], style={"marginLeft": 120,"marginBottom":25}
     ),
@@ -221,8 +221,33 @@ page_0_layout = html.Div( children = [
     
 ])
 
+         
+   
+@app.callback(
+    Output('schema', 'src'),
+    Output('schema', 'style'),
+    Output('explainer_text','children'),
+    Input('schema_pages', 'page'))
 
+def schema(page): 
 
+    if page == 2:
+        
+        return ("/assets/s1.png" , {'width':850,
+                                    'paddingBottom':40,
+                                    'paddingTop':40,
+                                    "marginLeft": 0},
+                "Odorant binding proteins (OBPs) are a diverse group of small, 10-20 kDa, soluble extracellular target binding proteins found in both terrestrial vertebrates and invertebrates. These studies indicate that there is no shared homology between insect and mammalian OBPs. OBPs in mammals are comprised of a beta barrel type structure, whereas the OBPs in insects are a globular structure comprised of alpha helices. Although OBPs are multifaceted in terms of their potential roles in both insects and mammals alike, they are primarily thought to act as odor transporters, solubilizing volatile organic compounds (VOCs) and pheromones from the surrounding air into the aqueous phase of the odor sensory organ, such as the mucus in the nose or sensillum lymph of an antennae. Once the odors from the environment are solubilized by OBPs, they can then be transported to odor sensing neurons which are coated with olfactory receptor (OR) proteins, which can recognize and bind to specific odors, thus signaling an olfactory response.")
+    
+    if page == 3:
+        
+        return ("/assets/s2.png" , {'width':850,"marginLeft": 0, 'paddingBottom':20,'paddingTop':20},
+                "The classic insect OBP contains 6 highly conserved cystine residues which form 3 disulphide bonds. However, there are insect OBP variants with fewer than 5 cystines which only from 2 disulphide bonds and are aptly named minus-C OBPs. Conversely there are insect OBPs with 8 or more cystines which are termed as plus-C OBPs. A special variant of plus-C OBPs are atypical OBPs which typically are 20-30 amino acids longer compared to regular insect OBPs and contain 10 or more cystines. Atypical OBPs are also sometimes referred to as two domain OBPs or double domain OBPs which refers to a fusion protein consisting of two OBPs. The variation in cystine count, drastically changes the underlying protein folding, survivability in the extracellular environment and definition of ligand binding pocket.")
+    
+    if page == 1:
+        
+        return ("/assets/s4.png" , {'width':850,"marginLeft": 0},
+                "Odorant binding proteins, OBPs, are a family of small, globular, extra-cellular proteins which assist in solubilizing volatile organic compounds (VOCs) so they can be internalized and transported by an organism. Since their initial discovery in early eighties, thousands of OBPs have been identified through genome sequencing and characterized by fluorescence ligand binding assays. While a given individual OBP has been studied in the context of their role in specific organism, there has not been studies towards the understanding of the comparative structure-function relations of all known OBPs, primarily due to a lack of a centralized database that incorporates the binding affinity with the structure of all OBPs. Using data obtained from 215 functional studies containing 382 unique OBPs from 91 insect species we created a database, dubbed as iOBPdb, that contains OBP binding affinities for a wide range of VOC targets.")
 
 
 
@@ -891,7 +916,10 @@ page_3_layout = html.Div(children =[
 
 
 
-
+df = pd.DataFrame(columns=['OBP (Name \ Sequence \ ID)', 
+                           'Compound (Name \ Smiles \ CAS)', 
+                           'Binding Affinity (Units)', 
+                           'Source (DOI / url)'])
 
 page_4_layout = html.Div([
     
@@ -902,13 +930,58 @@ page_4_layout = html.Div([
         children=[
             
             dmc.Text(
-                "BindingScapes",
+                "Data Entry Form",
                 style={"fontSize": 60},
             )
         ], style={"marginLeft": 120}
     ),
+    
+    html.Div([
+    dash_table.DataTable(
+        id='data-table',
+        columns=[{'name': col, 'id': col} for col in df.columns],
+        data=df.to_dict('records'),
+        editable=True,
+        row_deletable=True,
+        style_header={
+        'backgroundColor': 'rgb(30, 30, 30)',
+        'color': 'white'
+        },
+        style_data={
+        'backgroundColor': 'rgb(50, 50, 50)',
+        'color': 'white'
+        },
+        style_cell={'textAlign': 'left'},
+        
+    ),
+    html.Button('Add Row', id='add-row-button', n_clicks=0),
+    html.Button('Submit', id='submit-button', n_clicks=0),
+    html.Div(id='output')
+    ], style={"marginLeft": 240,"marginRight": 120})
+    
+    
 
 ])
+
+@app.callback(
+    dash.dependencies.Output('data-table', 'data'),
+    [dash.dependencies.Input('add-row-button', 'n_clicks')],
+    [dash.dependencies.State('data-table', 'data'),
+     dash.dependencies.State('data-table', 'columns')]
+)
+def add_row(n_clicks, table_data, table_columns):
+    if n_clicks > 0:
+        table_data.append({c['id']: '' for c in table_columns})
+    return table_data
+
+@app.callback(
+    dash.dependencies.Output('output', 'children'),
+    [dash.dependencies.Input('submit-button', 'n_clicks')]
+)
+def update_output(n_clicks):
+    if n_clicks > 0:
+        return 'Thank you for submitting your information'
+
 
 
 
@@ -1237,7 +1310,7 @@ page_7_layout = html.Div([
                     dmc.Select(
                         id="dropdown-pdb-OBP",
                         value = os.path.join(DATAPATH, '1N8U.pdb'),
-                        data=pdb_options, style={"width": 130, "marginBottom": 20},
+                        data =pdb_options, style={"width": 130, "marginBottom": 20},
                         
                     ),
                     
@@ -1263,15 +1336,16 @@ page_7_layout = html.Div([
                                "height": 35,
                                "marginBottom": 20}),
                     
-                    dmc.Title("Download", order=6),
+                    dmc.Title("PDB Source", order=6),
                     
-                    dmc.Button("PDB file", 
-                               id="btn_csv",
-                               style={'width' : 130},
-                               n_clicks=0,
-                               leftIcon=[DashIconify(
-                                    icon="akar-icons:download")
-                                ]),
+                    html.Div(
+                        dcc.Link('-', id='pdbsource', href='',
+                                 target='_blank',
+                                 style={'textDecoration': 'underline',
+                                        'color': '#4dabf7',
+                                        'cursor': 'pointer'}),
+                        style={'width': '130px'}
+                    )
                     
                 ]), style={"marginLeft": 80,"marginRight": 25}), span=1),
                 
@@ -1446,6 +1520,8 @@ page_7_layout = html.Div([
     Output('OBP_info', 'children'),
     Output('OBPseq', 'sequence'),
     Output('OBPseq_sp', 'sequence'),
+    Output('OBPseq', 'coverage'),
+    Output('OBPseq_sp', 'coverage'),
     Output('obpsource', 'children'),
     Output('obpac', 'children'),
     Output('obpup', 'children'),
@@ -1481,18 +1557,36 @@ def update_seq(obp):
     obp_spec = oi_df[:-1].at[row, "Species"]
     obp_type = oi_df[:-1].at[row, "Binding Protein Type"]
     
-    obp_pdbrcsb = 'RCSB: ' + oi_df[:-1].at[row, "RCSBPDB entry"]
-    obp_pdbsm = '\nSWISS-MODEL: ' + oi_df[:-1].at[row, "SwissModel"]
-    obp_pdbalpha = '\nAlphaFold: ' + oi_df[:-1].at[row, "Alphafold"]
+    obp_pdbrcsb = 'RCSB: ' + oi_df[:-1].at[row, "RCSB entry"]
+    obp_pdbsm = '\nSWISS-MODEL: ' + oi_df[:-1].at[row, "SwissModel PDB"]
+    obp_pdbalpha = '\nAlphaFold: ' + oi_df[:-1].at[row, "AlphaFold PDB"]
     
     obp_cys = oi_df[:-1].at[row, "Cystine count"]
+    
     obp_seq = oi_df[:-1].at[row, "AA Sequence"]
+    
+    cysteine_indices = [i for i, res in enumerate(obp_seq) if res == 'C']
+    obp_seq_cov = [{'start': idx, 'end': idx+1, 
+                    'color': 'yellow'} for idx in cysteine_indices]
+    non_coverage = [{'start': idx, 'end': idx+1, 
+                     'color': 'white'} for idx in range(len(obp_seq)) if idx not in cysteine_indices]
+
+    obp_seq_cov += non_coverage
+    
     obp_seq_sp = oi_df[:-1].at[row, "AA Sequence W/O signal peptide"]
+    cysteine_indices = [i for i, res in enumerate(obp_seq_sp) if res == 'C']
+    obp_seq_sp_cov = [{'start': idx, 'end': idx+1, 
+                       'color': 'yellow'} for idx in cysteine_indices]
+    non_coverage = [{'start': idx, 'end': idx+1, 
+                     'color': 'white'} for idx in range(len(obp_seq_sp)) if idx not in cysteine_indices]
+
+    obp_seq_sp_cov += non_coverage
     
     try:
          
-        return (obp_title, obp_seq, obp_seq_sp, obp_source, obp_ac,obp_up,
-                obp_spec,obp_type,obp_pdbrcsb,obp_pdbsm,obp_pdbalpha,obp_cys)
+        return (obp_title, obp_seq, obp_seq_sp, obp_seq_cov, obp_seq_sp_cov,
+                obp_source, obp_ac,obp_up,obp_spec,
+                obp_type,obp_pdbrcsb,obp_pdbsm,obp_pdbalpha,obp_cys)
         
     except:
         
@@ -1634,7 +1728,7 @@ def display_page(pathname,cas,obp,cell0,cell1):
                 
                 return page_7_layout,path,cas,obp
         
-        elif pathname == '/Bindingscape':
+        elif pathname == '/DataEntry':
             
             return page_4_layout,pathname,cas,obp
         
@@ -1650,16 +1744,67 @@ def display_page(pathname,cas,obp,cell0,cell1):
         
         return dash.no_update 
     
+    
+    
+@app.callback(
+    Output('dropdown-pdb-OBP', 'value'),
+    Output('dropdown-pdb-OBP', 'data'),
+    Input('row_selected_OBP', 'data'),
+)
+
+def OBP_dropdown(obp):
+
+    row = oi_df[oi_df['Binding Protein Name'] == obp].index[0]
+    DATAPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'PDB_iodbp')
+    pdb_options = []
+    
+    obp_pdbrcsb = (oi_df[:-1].at[row, "RCSB entry"]).split(" / ")
+
+    for PDB in obp_pdbrcsb:
+        
+        if PDB != '-':
+        
+            pdb_options += [{
+                'label': PDB,
+                'value': os.path.join(DATAPATH, PDB +'.pdb')
+            }]
+        
+    DATAPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'SWM_pdbs')
+    obp_pdbsm = oi_df[:-1].at[row, "SwissModel PDB"]
+    
+    if obp_pdbsm != '-': 
+    
+        pdb_options += [{
+            'label': 'SwissModel',
+            'value': os.path.join(DATAPATH, obp_pdbsm)
+        }]
+    
+    DATAPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'alpha_pdbs')
+    obp_pdbalpha = oi_df[:-1].at[row, "AlphaFold PDB"]
+      
+    pdb_options += [{ 
+        'label': 'AlphaFold',
+        'value': os.path.join(DATAPATH, obp_pdbalpha)
+    }]
+    value = os.path.join(DATAPATH, obp_pdbalpha)
+    
+    return value, pdb_options
 
     
 @app.callback(
     Output('mol3d-biomolecule-OBP', 'children'),
+    Output('pdbsource', 'children'),
+    Output('pdbsource', 'href'),
     Input('dropdown-pdb-OBP', 'value'),
+    Input('dropdown-pdb-OBP', 'data'),
     Input('dropdown-pdb-style', 'value'),
     Input("pdb_color", "value"),
+    Input('obpup', 'children')
 )
     
-def use_upload_obp(pdb,style,color):
+def use_upload_obp(pdb,options,style,color,uniprotID):
+
+    selected_option = next((option for option in options if option['value'] == pdb), None)
 
     if pdb is not None:
         
@@ -1669,7 +1814,32 @@ def use_upload_obp(pdb,style,color):
     else:
          copy2((os.path.join(DATAPATH, '1N8U.pdb')), './str.pdb')
          fname = './str.pdb'
-
+        
+    pdbsource = selected_option["label"]
+    
+    if pdbsource == None:
+        
+        text = ''
+        link = ''
+    
+    elif pdbsource == 'AlphaFold':
+    
+        text = 'PDB generated with AlphaColab'
+        link = 'https://colab.research.google.com/github/sokrypton/ColabFold/blob/main/AlphaFold2.ipynb'
+        
+    elif pdbsource == 'SwissModel':
+    
+        text = 'PDB for ' + uniprotID + ' found on Swiss Model server'
+        #'generated with Swiss Model server'
+        link = 'https://swissmodel.expasy.org/repository/uniprot/' + uniprotID
+        
+    else:
+        
+        text = 'PDB for ' + pdbsource + ' found on RCSB'
+        link = 'https://www.rcsb.org/structure/' + pdbsource
+        
+    # elif pdbsource == 'SwissModel'
+        
     # Create the model data from the decoded contents
     pdb = parser.PdbParser(fname)
     mdata = pdb.mol3d_data()
@@ -1719,81 +1889,11 @@ def use_upload_obp(pdb,style,color):
             backgroundOpacity='0',
             atomLabelsShown=False,
             zoom = {'factor': 1.35, 'animationDuration': 0, 'fixedPath': False},
-            style = { 'height': 500, 'width': 500})
-
-
-            
-@app.callback(
-    Output('schema', 'src'),
-    Output('schema', 'style'),
-    Output('explainer_text','children'),
-    Input('schema_pages', 'page'))
-
-def schema(page): 
-
-    if page == 2:
-        
-        return ("/assets/s1.png" , {'width':850,
-                                    'paddingBottom':40,
-                                    'paddingTop':40,
-                                    "marginLeft": 0},
-                "Odorant binding proteins (OBPs) are a diverse group of small, 10-20 kDa, soluble extracellular target binding proteins found in both terrestrial vertebrates and invertebrates. These studies indicate that there is no shared homology between insect and mammalian OBPs. OBPs in mammals are comprised of a beta barrel type structure, whereas the OBPs in insects are a globular structure comprised of alpha helices. Although OBPs are multifaceted in terms of their potential roles in both insects and mammals alike, they are primarily thought to act as odor transporters, solubilizing volatile organic compounds (VOCs) and pheromones from the surrounding air into the aqueous phase of the odor sensory organ, such as the mucus in the nose or sensillum lymph of an antennae. Once the odors from the environment are solubilized by OBPs, they can then be transported to odor sensing neurons which are coated with olfactory receptor (OR) proteins, which can recognize and bind to specific odors, thus signaling an olfactory response.")
-    
-    if page == 3:
-        
-        return ("/assets/s2.png" , {'width':850,"marginLeft": 0, 'paddingBottom':20,'paddingTop':20},
-                "The classic insect OBP contains 6 highly conserved cystine residues which form 3 disulphide bonds. However, there are insect OBP variants with fewer than 5 cystines which only from 2 disulphide bonds and are aptly named minus-C OBPs. Conversely there are insect OBPs with 8 or more cystines which are termed as plus-C OBPs. A special variant of plus-C OBPs are atypical OBPs which typically are 20-30 amino acids longer compared to regular insect OBPs and contain 10 or more cystines. Atypical OBPs are also sometimes referred to as two domain OBPs or double domain OBPs which refers to a fusion protein consisting of two OBPs. The variation in cystine count, drastically changes the underlying protein folding, survivability in the extracellular environment and definition of ligand binding pocket.")
-    
-    if page == 1:
-        
-        return ("/assets/s4.png" , {'width':850,"marginLeft": 0},
-                "Odorant binding proteins, OBPs, are a family of small, globular, extra-cellular proteins which assist in solubilizing volatile organic compounds (VOCs) so they can be internalized and transported by an organism. Since their initial discovery in early eighties, thousands of OBPs have been identified through genome sequencing and characterized by fluorescence ligand binding assays. While a given individual OBP has been studied in the context of their role in specific organism, there has not been studies towards the understanding of the comparative structure-function relations of all known OBPs, primarily due to a lack of a centralized database that incorporates the binding affinity with the structure of all OBPs. Using data obtained from 215 functional studies containing 381 unique OBPs from 91 insect species we created a database, dubbed as iOBPdb, that contains OBP binding affinities for a wide range of VOC targets.")
+            style = { 'height': 500, 'width': 500}), text, link
 
 
 
-@app.callback(
-    Output('dropdown-pdb-OBP', 'value'),
-    Output('dropdown-pdb-OBP', 'data'),
-    Input('row_selected_OBP', 'data'),
-)
 
-def OBP_dropdown(obp):
-
-    row = oi_df[oi_df['Binding Protein Name'] == obp].index[0]
-    DATAPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'PDB_iodbp')
-    pdb_options = []
-    
-    obp_pdbrcsb = (oi_df[:-1].at[row, "RCSBPDB entry"]).split(" / ")
-
-    for PDB in obp_pdbrcsb:
-        
-        if PDB != '-':
-        
-            pdb_options += [{
-                'label': PDB,
-                'value': os.path.join(DATAPATH, PDB +'.pdb')
-            }]
-        
-    DATAPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'SWM_pdbs')
-    obp_pdbsm = oi_df[:-1].at[row, "SwissModel"]
-    
-    if obp_pdbsm != '-': 
-    
-        pdb_options += [{
-            'label': 'SwissModel',
-            'value': os.path.join(DATAPATH, obp_pdbsm)
-        }]
-    
-    DATAPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'alpha_pdbs')
-    obp_pdbalpha = oi_df[:-1].at[row, "Alphafold"]
-      
-    pdb_options += [{ 
-        'label': 'AlphaFold',
-        'value': os.path.join(DATAPATH, obp_pdbalpha)
-    }]
-    value = os.path.join(DATAPATH, obp_pdbalpha)
-    
-    return value, pdb_options
 
 if __name__ == '__main__':
     app.run_server(debug=True)

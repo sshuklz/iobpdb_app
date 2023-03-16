@@ -11,6 +11,7 @@ import dash_bio
 import dash_bio as dashbio
 from dash_bio.utils import pdb_parser as parser, mol3dviewer_styles_creator as sparser
 
+from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from shutil import copy2
 import pandas as pd
 import os
@@ -126,7 +127,7 @@ Navbar = dmc.Navbar(
                 dmc.Anchor('Browse Compounds', href='/BrowseCompounds'),
                 dmc.Anchor('Browse OBPs', href='/BrowseOBPs'),
                 dmc.Anchor('Data Entry Form', href='/DataEntry'),
-                dmc.Anchor('Download datafiles', href='/Download')
+                dmc.Anchor('Download Data Files', href='/Download')
             
             ]
         )
@@ -1421,7 +1422,7 @@ page_7_layout = html.Div([
                                 style={"fontSize": 16},
                             ),
                             
-                            dmc.Title("OBP Cystine count", order=6),
+                            dmc.Title("Molecular Weight", order=6),
                             
                             dmc.Text(
                                 "-",
@@ -1561,9 +1562,10 @@ def update_seq(obp):
     obp_pdbsm = '\nSWISS-MODEL: ' + oi_df[:-1].at[row, "SwissModel PDB"]
     obp_pdbalpha = '\nAlphaFold: ' + oi_df[:-1].at[row, "AlphaFold PDB"]
     
-    obp_cys = oi_df[:-1].at[row, "Cystine count"]
-    
     obp_seq = oi_df[:-1].at[row, "AA Sequence"]
+    protein_analysis = ProteinAnalysis(obp_seq)
+    obp_cys = protein_analysis.molecular_weight() / 1000
+    obp_cys = '{:.3f}'.format(obp_cys) + ' kDa'
     
     cysteine_indices = [i for i, res in enumerate(obp_seq) if res == 'C']
     obp_seq_cov = [{'start': idx, 'end': idx+1, 

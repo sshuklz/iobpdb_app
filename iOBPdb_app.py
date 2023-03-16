@@ -986,6 +986,18 @@ def update_output(n_clicks):
 
 
 
+files = {
+    'OBP_info.csv': {'path': 'OBP_info.csv', 
+               'text': 'The characteristics and information pertinent to every odorant binding protein (OBP) are stored in a data table on OBP_info.csv'},
+    'Compound_info.csv': {'path': 'Compound_info.csv', 
+               'text': 'The specific attributes of every volatile organic compound (VOC) are found in a data table stored on Compound_info.csv'},
+    'Compound_OBP_binding.csv': {'path': 'Compound_OBP_binding.csv', 
+               'text': 'The binding affinity of every recorded OBP-VOC interaction is found in a data table stored on Compound_OBP_binding.csv'},
+    'iOBPdb_PDBs_alphafold_denovo.zip': {'path': 'iOBPdb_PDBs_alphafold_denovo.zip', 
+               'text': 'All de novo generated PDB structures with AlphaFold V2.0 is stored in iOBPdb_PDBs_alphafold_denovo.zip'},
+    'iOBPdb_full_site.zip': {'path': 'iOBPdb_full_site.zip', 
+               'text': 'All previous files stored in a unified zip file'}}
+
 page_5_layout = html.Div([
     
     Navbar,
@@ -995,13 +1007,56 @@ page_5_layout = html.Div([
         children=[
             
             dmc.Text(
-                "Download",
+                "Download Data Files",
                 style={"fontSize": 60},
-            )
+            ),
+            
+            
         ], style={"marginLeft": 120}
     ),
-
+    
+    html.Div(style={'height': '30px'}),
+    
+    dmc.Center(
+        
+        children=[
+    
+            html.Div([
+                
+                html.Table([
+                    html.Tr([
+                        html.Td([
+                            html.Div(
+                                files[file_name]['text'],
+                                style={'font-size': '24px'}
+                            ),
+                            
+                            html.Div([
+                            
+                                html.H1('Download:', style={'font-size': '24px',
+                                                           'display': 'inline-block'}),
+                                
+                                html.A(
+                                file_name,
+                                href=files[file_name]['path'],
+                                download=file_name,
+                                style={'color': '#4dabf7',
+                                       'font-size': '24px'})
+                                
+                                ]),
+                            
+                            html.Div(style={'height': '30px'})
+                        ],style={'margin': 'auto'})
+                    ]) for file_name in files ],
+                    
+                style={'margin': 'auto'})
+        
+        ], style={"marginLeft": 480,
+                  "marginRight": 340})])
 ])
+
+
+
 
 
 
@@ -1563,9 +1618,6 @@ def update_seq(obp):
     obp_pdbalpha = '\nAlphaFold: ' + oi_df[:-1].at[row, "AlphaFold PDB"]
     
     obp_seq = oi_df[:-1].at[row, "AA Sequence"]
-    protein_analysis = ProteinAnalysis(obp_seq)
-    obp_cys = protein_analysis.molecular_weight() / 1000
-    obp_cys = '{:.3f}'.format(obp_cys) + ' kDa'
     
     cysteine_indices = [i for i, res in enumerate(obp_seq) if res == 'C']
     obp_seq_cov = [{'start': idx, 'end': idx+1, 
@@ -1583,6 +1635,10 @@ def update_seq(obp):
                      'color': 'white'} for idx in range(len(obp_seq_sp)) if idx not in cysteine_indices]
 
     obp_seq_sp_cov += non_coverage
+    
+    protein_analysis = ProteinAnalysis(obp_seq_sp)
+    obp_cys = protein_analysis.molecular_weight() / 1000
+    obp_cys = '{:.3f}'.format(obp_cys) + ' kDa'
     
     try:
          

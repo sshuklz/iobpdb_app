@@ -49,7 +49,7 @@ def unique_list(df,df_col_name):
 
     options = []
     
-    name_list = list(set(list(df[df_col_name])))
+    name_list = sorted(list(set(list(df[df_col_name]))))
     
     for option in name_list:
         
@@ -367,7 +367,7 @@ page_1_layout = html.Div([
                                    searchable=True,
                                    clearable=True,
                                    nothingFound="Not in list",
-                                   data = fg_list,
+                                   data = sorted(fg_list),
                                    style={"width": 200,'height':70,"marginTop": 10}),
                         
                         ]), span=1),
@@ -382,7 +382,7 @@ page_1_layout = html.Div([
                                    searchable=True,
                                    clearable=True,
                                    nothingFound="Not in list",
-                                   data = hp_list,
+                                   data = sorted(hp_list),
                                    style={"width": 200,'height':70,"marginTop": 10}),
                         
                         ]), span=1),
@@ -397,7 +397,7 @@ page_1_layout = html.Div([
                                    searchable=True,
                                    clearable=True,
                                    nothingFound="Not in list",
-                                   data = ds_list,
+                                   data = sorted(ds_list),
                                    style={"width": 200,'height':70,"marginTop": 10}),
                         
                         ]), span=1),

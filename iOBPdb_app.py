@@ -171,14 +171,14 @@ page_0_layout = html.Div( children = [
         
         children=[
             
-            html.Img(src="/assets/BAS_lr.gif", width = 250,height = 250),
+            html.Img(src="/assets/BAS_lr.gif", width = 250,height = 250, loop=True),
             
             dmc.Text(
                 "iOBPdb Home",
                 style={"fontSize": 60},
             ),
             
-            html.Img(src="/assets/cartoon_lr.gif", width = 250,height = 250)
+            html.Img(src="/assets/cartoon_lr.gif", width = 250,height = 250, loop=True)
             
             
         ], style={"marginLeft": 120,"marginBottom":25}

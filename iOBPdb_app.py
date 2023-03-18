@@ -171,16 +171,15 @@ page_0_layout = html.Div( children = [
         
         children=[
             
-            html.Video(src="/assets/OBP_BAS.webm", 
-                       autoPlay=True, loop=True,width = 250,height = 250),
+            html.Img(src="/assets/BAS_lr.png", width = 250,height = 250),
             
             dmc.Text(
                 "iOBPdb Home",
                 style={"fontSize": 60},
             ),
             
-            html.Video(src='/assets/OBP_cartoon.webm', 
-                       autoPlay=True, loop=True, width = 250,height = 250)
+            html.Img(src="/assets/cartoon_lr.png", width = 250,height = 250)
+            
             
         ], style={"marginLeft": 120,"marginBottom":25}
     ),

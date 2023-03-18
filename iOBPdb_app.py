@@ -39,9 +39,12 @@ compact_comp_df = ci_df[ci_df.columns[[0,1,3,2]]]
 compact_comp_df['id'] = compact_comp_df['CAS-number']
 compact_comp_df['Compound name'] = compact_comp_df['Compound name'].str.split(' /').apply(lambda x: x[0])
 compact_comp_df['Compound name'] = compact_comp_df['Compound name'].str.capitalize()
+compact_comp_df['OBPs'] = compact_comp_df['OBPs'].astype(float)
+
 
 compact_OBP_df = oi_df[oi_df.columns[[0,1,9,10,5]]]
 compact_OBP_df['id'] = compact_OBP_df['Binding Protein Name']
+compact_OBP_df = compact_OBP_df.sort_values('Binding Protein Name')
 
 
 
@@ -168,14 +171,14 @@ page_0_layout = html.Div( children = [
         
         children=[
             
-            html.Img(src="/assets/BAS.png", width = 250,height = 250),
+            html.Img(src="/assets/BAS copy.gif", width = 250,height = 250),
             
             dmc.Text(
                 "iOBPdb Home",
                 style={"fontSize": 60},
             ),
             
-            html.Img(src="/assets/cartoon.png", width = 250,height = 250)
+            html.Img(src="/assets/cartoon copy.gif", width = 250,height = 250)
             
         ], style={"marginLeft": 120,"marginBottom":25}
     ),

@@ -17,7 +17,6 @@ import pandas as pd
 import os
 from molmass import Formula
 import urllib.request
-import time
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)

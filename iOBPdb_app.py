@@ -162,6 +162,12 @@ app.layout = html.Div([
 
 
 
+def generate_img_src(gif_url):
+    timestamp = int(time.time() * 1000)
+    return f"{gif_url}?{timestamp}"
+                        
+
+
 page_0_layout = html.Div( children = [
     
     Navbar,

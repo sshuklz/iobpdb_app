@@ -158,12 +158,6 @@ app.layout = html.Div([
     ])
     
 ])
-
-
-
-def generate_img_src(gif_url):
-    timestamp = int(time.time() * 1000)
-    return f"{gif_url}?{timestamp}"
                         
 
 
@@ -175,14 +169,14 @@ page_0_layout = html.Div( children = [
         
         children=[
             
-            html.Img(src=generate_img_src("/assets/BAS.png"), width = 250,height = 250),
+            html.Img(src="/assets/BAS.png", width = 250,height = 250),
             
             dmc.Text(
                 "iOBPdb Home",
                 style={"fontSize": 60},
             ),
             
-            html.Img(src=generate_img_src("/assets/cartoon.png"), width = 250,height = 250)
+            html.Img(src="/assets/cartoon.png", width = 250,height = 250)
             
             
         ], style={"marginLeft": 120,"marginBottom":25}

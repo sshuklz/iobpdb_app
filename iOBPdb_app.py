@@ -17,6 +17,7 @@ import pandas as pd
 import os
 from molmass import Formula
 import urllib.request
+import time
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -159,7 +160,11 @@ app.layout = html.Div([
     
 ])
 
-                        
+
+
+def generate_img_src(gif_url):
+    timestamp = int(time.time() * 1000)
+    return f"{gif_url}?{timestamp}"
                         
 
 
@@ -171,14 +176,14 @@ page_0_layout = html.Div( children = [
         
         children=[
             
-            html.Img(src="/assets/BAS_lr.gif", width = 250,height = 250, loop=True),
+            html.Img(src="/assets/BAS_lr.png", width = 250,height = 250),
             
             dmc.Text(
                 "iOBPdb Home",
                 style={"fontSize": 60},
             ),
             
-            html.Img(src="/assets/cartoon_lr.gif", width = 250,height = 250, loop=True)
+            html.Img(src=("/assets/cartoon_lr.png"), width = 250,height = 250)
             
             
         ], style={"marginLeft": 120,"marginBottom":25}

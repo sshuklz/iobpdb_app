@@ -922,7 +922,7 @@ page_3_layout = html.Div(children =[
 df = pd.DataFrame(columns=['Compound Name',
                            'VOC (CAS#)*',
                            'Compound SMILES',
-                           'Binding Affinity (kD)*'], index=range(5))
+                           'Binding Affinity (Kd)*'], index=range(5))
 
 page_4_layout = html.Div([
     
@@ -1012,11 +1012,33 @@ page_4_layout = html.Div([
                     style_data={
                     'backgroundColor': 'rgb(50, 50, 50)',
                     'color': 'white',
-                    'width': '100px'
+                    'width': '155px'
                     },
-                    style_cell={'textAlign': 'left'},
+                    style_cell={'textAlign': 'left',
+                                'overflow': 'hidden',        
+                                'textOverflow': 'ellipsis',
+                                'maxWidth': '155px',
+                                },
                     
                     style_data_conditional=[
+                        {
+                            # Style for editable cells
+                            'if': {'column_editable': True},
+                            'color': 'white',
+                            'backgroundColor': 'rgb(50, 50, 50)',
+                        },
+                        {
+                            # Style for selected cells
+                            'if': {'state': 'selected'},
+                            'color': 'white',
+                            'backgroundColor': 'rgba(255, 255, 255, 1)',
+                        },
+                        {
+                            # Style for active (currently editing) cells
+                            'if': {'state': 'active'},
+                            'color': 'white',
+                            'backgroundColor': 'rgba(255, 255, 255, 1)',
+                        },
                         {'if': {'column_id': 'Compound name'},
                              'width': '25%'},
                         {'if': {'column_id': 'VOC (CAS#)*'},
@@ -1024,14 +1046,14 @@ page_4_layout = html.Div([
                         {'if': {'column_id': 'Compound SMILES'},
                              'width': '25%'},
                         {'if': {'column_id': 'Binding Affinity (kD)*'},
-                             'width': '25%'}
+                             'width': '25%'},
                     ]),
                 
                 html.Button('Add Row', id='add-row-button', n_clicks=0),
                 html.Button('Submit', id='submit-button', n_clicks=0),
                 html.Div(id='output')
                 
-            ]), span = 6),
+            ], style={"marginRight": 60}), span = 7),
         ],gutter="xl")
 
 ])
@@ -1154,10 +1176,15 @@ page_6_layout = html.Div([
         
         dmc.Col(html.Div([
             
-            html.Img(id='molimg', 
-                     style={'height':'300 px', 
-                            'width':'300 px',
-                            'margin':0})
+            dmc.Skeleton(visible=True,
+                         animate=True,
+                         height=230,
+                         width = 300,
+                         id='load_comp',
+                         children=html.Img(id='molimg', 
+                                  style={'height':'300 px', 
+                                         'width':'300 px',
+                                         'margin':0}))
             
             ]), span=1),
         
@@ -1310,6 +1337,7 @@ page_6_layout = html.Div([
     Output('molfunc','children'),
     Output('molhum','children'),
     Output('moldis','children'),
+    Output('load_comp','visible'),
     Input('row_selected_comp', 'data')
 )
 
@@ -1382,7 +1410,7 @@ def update_img(cas):
     
     try:
         
-        return title, temp_url, alt_name, cas, form, mass, smile, func_list, hum_list,dis_list
+        return title, temp_url, alt_name, cas, form, mass, smile, func_list, hum_list,dis_list, False
         
     except:
         
@@ -1396,7 +1424,7 @@ def update_img(cas):
 
 def display_table_comp(cas):
     
-    new_df = cob_df[:-1].loc[cob_df['CAS-number'] == cas] ; print(new_df)   
+    new_df = cob_df[:-1].loc[cob_df['CAS-number'] == cas] 
     new_df = new_df.dropna(axis=1, how='all').T
     new_df.reset_index(inplace=True)
     new_df = new_df[2:]  

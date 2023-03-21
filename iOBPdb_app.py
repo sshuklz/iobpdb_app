@@ -919,10 +919,10 @@ page_3_layout = html.Div(children =[
 
 
 
-df = pd.DataFrame(columns=['OBP (Name \ Sequence \ ID)', 
-                           'Compound (Name \ Smiles \ CAS)', 
-                           'Binding Affinity (Units)', 
-                           'Source (DOI / url)'])
+df = pd.DataFrame(columns=['Compound Name',
+                           'VOC (CAS#)*',
+                           'Compound SMILES',
+                           'Binding Affinity (kD)*'], index=range(5))
 
 page_4_layout = html.Div([
     
@@ -936,33 +936,103 @@ page_4_layout = html.Div([
                 "Data Entry Form",
                 style={"fontSize": 60},
             )
-        ], style={"marginLeft": 120}
+        ], style={"marginLeft": 120,"marginBottom": 32}
     ),
     
-    html.Div([
-    dash_table.DataTable(
-        id='data-table',
-        columns=[{'name': col, 'id': col} for col in df.columns],
-        data=df.to_dict('records'),
-        editable=True,
-        row_deletable=True,
-        style_header={
-        'backgroundColor': 'rgb(30, 30, 30)',
-        'color': 'white'
-        },
-        style_data={
-        'backgroundColor': 'rgb(50, 50, 50)',
-        'color': 'white'
-        },
-        style_cell={'textAlign': 'left'},
-        
-    ),
-    html.Button('Add Row', id='add-row-button', n_clicks=0),
-    html.Button('Submit', id='submit-button', n_clicks=0),
-    html.Div(id='output')
-    ], style={"marginLeft": 240,"marginRight": 120})
-    
-    
+    dmc.Grid(
+        children=[
+            dmc.Col(html.Div(dmc.Stack(children=[
+                
+                dmc.Text(
+                    "OBP Data:",
+                    style={"fontSize": 30},
+                ),
+                
+                dmc.TextInput(label="Submitter:", 
+                              style={"width": 400}, 
+                              placeholder="Your Name"),
+                
+                dmc.TextInput(label="Email*:", 
+                              style={"width": 400}, 
+                              placeholder="Your Email", 
+                              ), #error="Enter a valid email"
+                
+                dmc.TextInput(label="DOI*:", 
+                              style={"width": 400}, 
+                              placeholder="Publication DOI"),
+                
+                dmc.TextInput(label="Protein name*:", 
+                              style={"width": 400}, 
+                              placeholder="Name of OBP, CSP, PBP etc."),
+                
+                dmc.TextInput(label="Species name:", 
+                              style={"width": 400}, 
+                              placeholder="Name of species"),
+                
+                dmc.TextInput(label="Online deposition of protein (UniProt, GenBank, RCSB etc.):", 
+                              style={"width": 400}, 
+                              placeholder="IDs, URL, accesion numbers"),
+                
+                dmc.Textarea(
+                    label="Protein sequence*:",
+                    placeholder="Amino acid sequence for full protein",
+                    style={"width": 400},
+                    autosize=True,
+                    minRows=3,
+                ),
+                
+                dmc.Textarea(
+                    label="Additional comments:",
+                    placeholder="Description of protein, type of binding experiment, other notes",
+                    style={"width": 400},
+                    autosize=True,
+                    minRows=3,
+                ),
+                
+            ], style={"marginLeft": 240})), span=5),
+            
+            dmc.Col(html.Div([
+                
+                dmc.Text(
+                    "OBP-VOC Binding Data:",
+                    style={"fontSize": 30,"marginBottom": 32},
+                ),
+                
+                dash_table.DataTable(
+                    id='data-table',
+                    columns=[{'name': col, 'id': col} for col in df.columns],
+                    data=df.to_dict('records'),
+                    editable=True,
+                    row_deletable=True,
+                    page_size=15,
+                    style_header={
+                    'backgroundColor': 'rgb(30, 30, 30)',
+                    'color': 'white'
+                    },
+                    style_data={
+                    'backgroundColor': 'rgb(50, 50, 50)',
+                    'color': 'white',
+                    'width': '100px'
+                    },
+                    style_cell={'textAlign': 'left'},
+                    
+                    style_data_conditional=[
+                        {'if': {'column_id': 'Compound name'},
+                             'width': '25%'},
+                        {'if': {'column_id': 'VOC (CAS#)*'},
+                             'width': '25%'},
+                        {'if': {'column_id': 'Compound SMILES'},
+                             'width': '25%'},
+                        {'if': {'column_id': 'Binding Affinity (kD)*'},
+                             'width': '25%'}
+                    ]),
+                
+                html.Button('Add Row', id='add-row-button', n_clicks=0),
+                html.Button('Submit', id='submit-button', n_clicks=0),
+                html.Div(id='output')
+                
+            ]), span = 6),
+        ],gutter="xl")
 
 ])
 
@@ -1410,10 +1480,18 @@ page_7_layout = html.Div([
                 
             dmc.Col(html.Div(
                 
-                dcc.Loading(html.Div(
-                            id='mol3d-biomolecule-OBP',
-                            children=[]
-                )), style={"marginLeft": 0,"marginRight": 25,"marginTop": 10}), span=3),
+                dmc.Skeleton(visible=True,
+                             animate=True,
+                             height=500,
+                             width = 500,
+                             id='load_pdb',
+                             children=html.Div(
+                                id='mol3d-biomolecule-OBP',
+                                children=[]
+                                )), style={"marginLeft": 0,
+                                           "marginRight": 25,
+                                           "marginTop": 10}
+            ), span=3),
             
             dmc.Col(html.Div(
                 
@@ -1855,6 +1933,7 @@ def OBP_dropdown(obp):
     Output('mol3d-biomolecule-OBP', 'children'),
     Output('pdbsource', 'children'),
     Output('pdbsource', 'href'),
+    Output('load_pdb','visible'),
     Input('dropdown-pdb-OBP', 'value'),
     Input('dropdown-pdb-OBP', 'data'),
     Input('dropdown-pdb-style', 'value'),
@@ -1949,7 +2028,7 @@ def use_upload_obp(pdb,options,style,color,uniprotID):
             backgroundOpacity='0',
             atomLabelsShown=False,
             zoom = {'factor': 1.35, 'animationDuration': 0, 'fixedPath': False},
-            style = { 'height': 500, 'width': 500}), text, link
+            style = { 'height': 500, 'width': 500}), text, link, False
 
 
 

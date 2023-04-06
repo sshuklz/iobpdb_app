@@ -1176,15 +1176,10 @@ page_6_layout = html.Div([
         
         dmc.Col(html.Div([
             
-            dmc.Skeleton(visible=True,
-                         animate=True,
-                         height=230,
-                         width = 300,
-                         id='load_comp',
-                         children=html.Img(id='molimg', 
-                                  style={'height':'300 px', 
-                                         'width':'300 px',
-                                         'margin':0}))
+            html.Img(id='molimg', 
+                     style={'height':'300 px', 
+                            'width':'300 px',
+                            'margin':0})
             
             ]), span=1),
         
@@ -1337,7 +1332,6 @@ page_6_layout = html.Div([
     Output('molfunc','children'),
     Output('molhum','children'),
     Output('moldis','children'),
-    Output('load_comp','visible'),
     Input('row_selected_comp', 'data')
 )
 
@@ -1410,7 +1404,7 @@ def update_img(cas):
     
     try:
         
-        return title, temp_url, alt_name, cas, form, mass, smile, func_list, hum_list,dis_list, False
+        return title, temp_url, alt_name, cas, form, mass, smile, func_list, hum_list,dis_list
         
     except:
         
